@@ -98,7 +98,7 @@ void DialogWidget::render()
 {
     drawTexture(dialog, *screen, 0, 0, dialog.width, dialog.height, 0, 0, screen->width, screen->height);
 
-    drawStringCenter("Select file", 0x0000, *screen, SCREEN_WIDTH/2, 30, EFont::Large);
+    drawStringCenter(title, 0x0000, *screen, SCREEN_WIDTH/2, 30, EFont::Large);
 
     ContainerWidget::render();
 }

@@ -37,6 +37,8 @@ void CursorTask::logic()
         tp_last_contact = false;
 
 #ifdef EMU
+    state = touchpad.pressed;
+
     //For nspire_emu
     if(state)
 	{

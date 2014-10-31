@@ -25,17 +25,17 @@ public:
 
 private:
     void selectCurrentEntry();
-
     void getEntries();
+
+    //For the list
+    TEXTURE *selection_background; //Blue bar
+    std::vector<std::pair<std::string,bool>> entries; //Pair of string: filename and bool: directory or not
+    static const unsigned int list_x = 40, list_y = 55, list_width = 240, list_height = 125;
     unsigned int selected_entry = 0, entry_top = 0;
 
-    static const unsigned int list_x = 42, list_y = 56, list_width = 226, list_height = 124;
+    ButtonWidget ok_button = {"Open", 240, 190, 40, 23, this}, close_button = {"Close", 40, 190, 40, 23, this};
+    TextlineWidget filename_input = {100, 194, 115, this};
 
-    ButtonWidget ok_button = {"Open", 242, 190, 40, 23, this}, close_button = {"Close", 38, 190, 40, 23, this};
-    TextlineWidget filename_input = {100, 192, 115, this};
-
-    TEXTURE *selection_background;
-    std::vector<std::pair<std::string,bool>> entries; //bool: directory
     Task *old_task; //Jump to this task after selection made or canceled
 };
 

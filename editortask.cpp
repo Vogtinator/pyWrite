@@ -247,9 +247,9 @@ void EditorTask::render()
     for(auto &item : menu_items)
     {
         if(cursor_task.y < menu_height && cursor_task.x > item_x && cursor_task.x < item_x + item.width)
-            drawStringCenter(item.name, 0x0000, *screen, item_x + item.width/2, 2, EFont::Large);
+            drawStringCenter(item.name, 0x0000, *screen, item_x + item.width/2, 0, EFont::Large);
         else
-            drawStringCenter(item.name, 0x0000, *screen, item_x + item.width/2, 2, EFont::Normal);
+            drawStringCenter(item.name, 0x0000, *screen, item_x + item.width/2, 4, EFont::Normal);
 
         item_x += item.width;
     }

@@ -25,6 +25,7 @@ BrowserTask::~BrowserTask()
 void BrowserTask::requestOpen()
 {
     ok_button.setTitle("Open");
+    title = "Open file";
 
     this->makeCurrent();
 }
@@ -32,6 +33,7 @@ void BrowserTask::requestOpen()
 void BrowserTask::requestSave()
 {
     ok_button.setTitle("Save");
+    title = "Save file";
 
     this->makeCurrent();
 }
@@ -97,6 +99,8 @@ void BrowserTask::render()
 
     DialogWidget::render();
 
+    drawRectangle(*screen, list_x, list_y, list_width, list_height, 0x0000);
+
     unsigned int line = 0;
     unsigned int y = list_y;
     for(auto&& entry : entries)
@@ -113,10 +117,10 @@ void BrowserTask::render()
         if(line == selected_entry)
         {
             drawTexture(*selection_background, *screen, 0, 0, selection_background->width, selection_background->height, list_x, y, selection_background->width, selection_background->height);
-            drawString(entry.first.c_str(), 0xFFFF, *screen, list_x, y, EFont::Normal);
+            drawString(entry.first.c_str(), 0xFFFF, *screen, list_x + 2, y, EFont::Normal);
         }
         else
-            drawString(entry.first.c_str(), 0x0000, *screen, list_x, y, EFont::Normal);
+            drawString(entry.first.c_str(), 0x0000, *screen, list_x + 2, y, EFont::Normal);
 
         y += fontHeight();
 
