@@ -17,11 +17,11 @@ void CursorTask::logic()
     touchpad_report_t touchpad;
     touchpad_scan(&touchpad);
 
-	state = touchpad.pressed;
+    state = touchpad_arrow_pressed(TPAD_ARROW_CLICK);
 
 	int dx = 0, dy = 0;
     static int tp_last_x = touchpad.x, tp_last_y = touchpad.y, tp_last_contact = touchpad.contact;
-    if(touchpad.contact && !state)
+    if(touchpad.contact && !touchpad.pressed)
 	{
         if(tp_last_contact)
         {
