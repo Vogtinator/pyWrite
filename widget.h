@@ -19,6 +19,11 @@ public:
     virtual void unfocus() { has_focus = false; }
     virtual void render() {}
 
+    enum Event {
+        Button_Press = 0,
+        Button_Release = 1
+    };
+
 protected:
     bool has_focus = false;
     ContainerWidget *parent;
@@ -35,6 +40,7 @@ public:
     virtual void focus() override;
     virtual void unfocus() override;
     virtual void render() override;
+    virtual void event(Widget *source, Event event) = 0;
 
 protected:
     std::vector<Widget*> children;
@@ -46,6 +52,7 @@ public:
     ButtonWidget(const char *title, unsigned int x, unsigned int y, unsigned int width, unsigned int height, ContainerWidget *parent)
         : Widget(parent), title(title), x(x), y(y), width(width), height(height) {}
 
+    virtual void setTitle(const char *title);
     virtual bool pressed();
     virtual void logic() override;
     virtual void render() override;
@@ -60,10 +67,10 @@ class TextlineWidget : public Widget
 {
 public:
     TextlineWidget(unsigned int x, unsigned int y, unsigned int width, ContainerWidget *parent)
-        : Widget(parent), x(x), y(y), width(width), height(12) {}
+        : Widget(parent), x(x), y(y), width(width), height(13   ) {}
 
     virtual std::string content() { return text; }
-    virtual void setContent(const char *str) { text = str; }
+    virtual void setContent(std::string str) { text = str; }
     virtual void logic() override;
     virtual void render() override;
 

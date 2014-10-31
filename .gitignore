@@ -1,4 +1,5 @@
 *.o
+*~
 *.tns*
 *.elf
 *.creator

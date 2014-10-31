@@ -57,6 +57,11 @@ void ContainerWidget::render()
 }
 
 
+void ButtonWidget::setTitle(const char *title)
+{
+    this->title = title;
+}
+
 bool ButtonWidget::pressed()
 {
     return is_pressed;
@@ -65,7 +70,13 @@ bool ButtonWidget::pressed()
 void ButtonWidget::logic()
 {
     is_hovering = cursorOn(x, y, width, height);
-    is_pressed = cursor_task.state && is_hovering;
+    bool currently_pressed = cursor_task.state && is_hovering;
+    if(currently_pressed && !is_pressed)
+        parent->event(this, Event::Button_Press);
+    else if(!currently_pressed && is_pressed)
+        parent->event(this, Event::Button_Release);
+
+    is_pressed = currently_pressed;
 }
 
 void ButtonWidget::render()
@@ -87,7 +98,7 @@ void DialogWidget::render()
 {
     drawTexture(dialog, *screen, 0, 0, dialog.width, dialog.height, 0, 0, screen->width, screen->height);
 
-    drawStringCenter("Select file", 0x0000, *screen, SCREEN_WIDTH/2, 30, e_font::LARGE);
+    drawStringCenter("Select file", 0x0000, *screen, SCREEN_WIDTH/2, 30, EFont::Large);
 
     ContainerWidget::render();
 }
@@ -150,7 +161,7 @@ void TextlineWidget::render()
     const char *str = text.c_str(), *cursor = str + cursor_pos;
     unsigned int x1 = x + 1;
 
-    while(*str)
+    while(*str && x1 - x + fontWidth(*str)< width)
     {
         if(has_focus && str == cursor)
             drawChar('|', 0x0000, *screen, x1 - 3, y + height/2 - fontHeight()/2);

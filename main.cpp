@@ -34,8 +34,8 @@ int main(int argc, char **argv)
         cursor_task.logic();
 
         Task *current_task = Task::current_task;
-        current_task->logic();
         current_task->render();
+        current_task->logic();
 
         if(need_background)
         {

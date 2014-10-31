@@ -9,13 +9,13 @@
 #include "textures/font_mono_dat.h"
 
 const unsigned int font_count = 3;
-static const font fonts[font_count] = {
+static const Font fonts[font_count] = {
     {std::string("Normal"), &font_normal, font_normal_dat, font_normal_dat_len},
     {std::string("Monospace"), &font_mono, font_mono_dat, font_mono_dat_len},
     {std::string("Large"), &font_large, font_large_dat, font_large_dat_len},
 };
 
-static const font *current_font = fonts + 1;
+static const Font *current_font = fonts + 1;
 
 inline int drawChar(unsigned char c, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y)
 {
@@ -54,9 +54,9 @@ unsigned int fontWidth(unsigned char c)
     return 'c' == '\t' ? 4*current_font->data[' ' + 17] : (c < current_font->data_len - 17) ? current_font->data[c + 17] : 0;
 }
 
-void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y, e_font f)
+void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y, EFont f)
 {
-    const font *old_font = current_font;
+    const Font *old_font = current_font;
 
     setFont(f);
 
@@ -67,18 +67,13 @@ void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x
 
 void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y)
 {
-    unsigned int width = 0;
-    const char *ptr = str;
-    while(*ptr)
-        width += fontWidth(*ptr++);
-
-    x -= width / 2;
+    x -= fontWidth(str) / 2;
     drawString(str, color, tex, x, y);
 }
 
-void drawString(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y, e_font f)
+void drawString(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y, EFont f)
 {
-    const font *old_font = current_font;
+    const Font *old_font = current_font;
 
     setFont(f);
 
@@ -105,12 +100,41 @@ void drawString(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsi
     }
 }
 
+unsigned int fontHeight(EFont font)
+{
+    return fonts[static_cast<unsigned int>(font)].data[12];
+}
+
 unsigned int fontHeight()
 {
     return current_font->data[12];
 }
 
-void setFont(e_font f)
+void setFont(EFont f)
 {
     current_font = fonts + static_cast<unsigned int>(f);
+}
+
+unsigned int fontWidth(const char *str)
+{
+    unsigned int width = 0;
+    while(*str)
+        width += fontWidth(*str++);
+
+    return width;
+}
+
+unsigned int fontWidth(const char *str, EFont f)
+{
+    const Font *old_font = current_font;
+
+    setFont(f);
+
+    unsigned int width = 0;
+    while(*str)
+        width += fontWidth(*str++);
+
+    current_font = old_font;
+
+    return width;
 }
