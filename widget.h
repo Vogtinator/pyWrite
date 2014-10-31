@@ -70,7 +70,7 @@ public:
         : Widget(parent), x(x), y(y), width(width), height(13   ) {}
 
     virtual std::string content() { return text; }
-    virtual void setContent(std::string str) { text = str; }
+    virtual void setContent(std::string str) { text = str; cursor_pos = 0; }
     virtual void logic() override;
     virtual void render() override;
 
