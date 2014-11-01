@@ -133,7 +133,9 @@ void TextlineWidget::logic()
 
         key_hold_down = true;
     }
-    else if(c)
+
+    static char old_char = 0;
+    if(c != old_char && c != 0)
     {
         if(c == '\b')
         {
@@ -146,12 +148,14 @@ void TextlineWidget::logic()
         else
         {
             text.insert(text.begin() + cursor_pos, c);
-
             ++cursor_pos;
         }
-
-        key_hold_down = true;
     }
+
+    old_char = c;
+
+    if(!any_key_pressed())
+        old_char = 0;
 }
 
 void TextlineWidget::render()
@@ -161,7 +165,10 @@ void TextlineWidget::render()
     const char *str = text.c_str(), *cursor = str + cursor_pos;
     unsigned int x1 = x + 1;
 
-    while(*str && x1 - x + fontWidth(*str)< width)
+    EFont old_font = getFont();
+    setFont(EFont::Normal);
+
+    while(*str && x1 - x + fontWidth(*str) < width)
     {
         if(has_focus && str == cursor)
             drawChar('|', 0x0000, *screen, x1 - 3, y + height/2 - fontHeight()/2);
@@ -173,4 +180,6 @@ void TextlineWidget::render()
 
     if(str == cursor)
         drawChar('|', 0x0000, *screen, x1 - 3, y + height/2 - fontHeight()/2);
+
+    setFont(old_font);
 }

@@ -24,6 +24,7 @@ enum class EFont : unsigned int {
 extern const unsigned int font_count;
 
 void setFont(EFont f);
+EFont getFont();
 int drawChar(unsigned char c, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y);
 void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y, EFont f);
 void drawStringCenter(const char *str, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y);

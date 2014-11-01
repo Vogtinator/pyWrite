@@ -115,6 +115,11 @@ void setFont(EFont f)
     current_font = fonts + static_cast<unsigned int>(f);
 }
 
+EFont getFont()
+{
+    return static_cast<EFont>(current_font - fonts);
+}
+
 unsigned int fontWidth(const char *str)
 {
     unsigned int width = 0;

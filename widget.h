@@ -67,7 +67,7 @@ class TextlineWidget : public Widget
 {
 public:
     TextlineWidget(unsigned int x, unsigned int y, unsigned int width, ContainerWidget *parent)
-        : Widget(parent), x(x), y(y), width(width), height(13   ) {}
+        : Widget(parent), x(x), y(y), width(width), height(13) {}
 
     virtual std::string content() { return text; }
     virtual void setContent(std::string str) { text = str; cursor_pos = 0; }
