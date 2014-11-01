@@ -9,7 +9,7 @@ class EditorTask : public Task
 {
 public:
     EditorTask();
-    virtual ~EditorTask() {};
+    virtual ~EditorTask() {}
 
     virtual void makeCurrent() override;
     virtual void logic() override;
@@ -41,12 +41,13 @@ private:
 
     const char *atLine(unsigned int l);
     unsigned int linesUntil(const char *end);
+    void updateCursor();
 
     std::string filepath;
-    std::string buffer = "Test. This is a test.\nAnother line.";
+    std::string buffer = "Hi!\nThis is pyWrite 0.1 by Vogtinator!";
 
-    // Start of selection (buffer offset) and line offset (if line is too long)
-    unsigned int sel_start = 0, sel_line = 0, line_offset = 0;
+    // Start of selection (buffer offset) and x offset (horizontal scrolling)
+    unsigned int sel_start = 0, sel_line = 0, x_offset = 0;
     unsigned int line_top = 0;
 
     unsigned int cursor_tick = 0, key_repeat = 0;

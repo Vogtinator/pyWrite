@@ -30,7 +30,7 @@ private:
     //For the list
     TEXTURE *selection_background; //Blue bar
     std::vector<std::pair<std::string,bool>> entries; //Pair of string: filename and bool: directory or not
-    static const unsigned int list_x = 40, list_y = 55, list_width = 240, list_height = 125;
+    static const unsigned int list_x = 40, list_y = 52, list_width = 240, list_height = 130;
     unsigned int selected_entry = 0, entry_top = 0;
 
     ButtonWidget ok_button = {"Open", 240, 190, 40, 23, this}, close_button = {"Close", 40, 190, 40, 23, this};
