@@ -9,6 +9,7 @@
 #include "browsertask.h"
 #include "cursortask.h"
 #include "dialogtask.h"
+#include "settingstask.h"
 
 EditorTask editor_task;
 
@@ -114,11 +115,17 @@ void EditorTask::logic()
     else if(isKeyPressed(KEY_NSPIRE_RIGHT))
         c = KEY_RIGHT;
 
-    if(isKeyPressed(KEY_NSPIRE_ESC) && !key_hold_down)
+    if(isKeyPressed(KEY_NSPIRE_ESC) && !key_hold_down) //Quit
     {
+        //TODO: confirm close
         running = false;
 
         key_hold_down = true;
+    }
+    else if(isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_S)) //Settings
+    {
+        settings_task.makeCurrent();
+        return;
     }
     else if(c > 1)
     {
@@ -435,8 +442,8 @@ void EditorTask::menuRun()
 
     const char* argv[] = {filepath.c_str()};
     key_hold_down = true;
-    //TODO: Let user change the path
-    nl_exec("/documents/ndless/micropython.tns", sizeof(argv), const_cast<char**>(argv));
+
+    nl_exec(settings_task.mpython_path.content().c_str(), sizeof(argv), const_cast<char**>(argv));
 }
 
 void EditorTask::menuExit()

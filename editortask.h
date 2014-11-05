@@ -47,10 +47,10 @@ private:
     unsigned int linesUntil(const char *end);
     void updateCursor();
 
-    std::string filepath, buffer = "Hi!\nThis is pyWrite 0.2 by Vogtinator!";
+    std::string filepath, buffer = "Hi!\nThis is pyWrite 0.2 by Vogtinator!\nPress Ctrl+S to open the settings dialog!";
 
     //Cursor and selection. cursor_pos is the offset into the buffer, sel_start and sel_end define the selection
-    unsigned int cursor_pos = 0, sel_start = 0, sel_end = 5;
+    unsigned int cursor_pos = 0, sel_start = 0, sel_end = 0;
 
     //Scrolling. line_top is number of the first visible line (vertical scrolling)
     //and x_offset

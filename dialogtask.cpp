@@ -61,7 +61,6 @@ void DialogTask::event(Widget *source, Widget::Event event)
 
     background = old_background;
     old_task->makeCurrent();
-
 }
 
 void DialogTask::showMessage(std::string msg)
