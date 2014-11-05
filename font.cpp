@@ -17,7 +17,7 @@ static const Font fonts[font_count] = {
 
 static const Font *current_font = fonts + 1;
 
-inline int drawChar(unsigned char c, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y)
+int drawChar(unsigned char c, COLOR color, TEXTURE &tex, unsigned int x, unsigned int y)
 {
     if(c == '\t')
         return fontWidth(c);
@@ -44,6 +44,40 @@ inline int drawChar(unsigned char c, COLOR color, TEXTURE &tex, unsigned int x, 
         {
             if(current_font->bitmap->bitmap[pos_x + x1 + (pos_y + y1) * current_font->bitmap->width] == 0xFFFF)
                 tex.bitmap[x + x1 + (y + y1) * tex.width] = color;
+        }
+
+    return width;
+}
+
+int drawChar(unsigned char c, COLOR color, COLOR background, TEXTURE &tex, unsigned int x, unsigned int y)
+{
+    if(c == '\t')
+        return fontWidth(c);
+
+    uint32_t width = current_font->data[8];
+    uint32_t height = current_font->data[12];
+
+    //current_font->data[16] is the char at the top left
+    unsigned int pos = c - current_font->data[16];
+    if(c < current_font->data[16] || current_font->data_len - 17 < c)
+        pos = 0x8D - current_font->data[16];
+
+    const unsigned int cols = current_font->bitmap->width / current_font->data[8];
+    unsigned int pos_x = pos % cols;
+    unsigned int pos_y = pos / cols;
+    pos_x *= width;
+    pos_y *= height;
+
+    //Each character has its specific width
+    width = current_font->data[c + 17];
+
+    for(unsigned int x1 = 0; x1 < width; x1++)
+        for(unsigned int y1 = 0; y1 < height; y1++)
+        {
+            if(current_font->bitmap->bitmap[pos_x + x1 + (pos_y + y1) * current_font->bitmap->width] == 0xFFFF)
+                tex.bitmap[x + x1 + (y + y1) * tex.width] = color;
+            else
+                tex.bitmap[x + x1 + (y + y1) * tex.width] = background;
         }
 
     return width;

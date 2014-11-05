@@ -20,9 +20,11 @@ void CursorTask::logic()
     state = touchpad_arrow_pressed(TPAD_ARROW_CLICK);
 
 	int dx = 0, dy = 0;
-    static int tp_last_x = touchpad.x, tp_last_y = touchpad.y, tp_last_contact = touchpad.contact;
+    static bool tp_last_contact = touchpad.contact;
     if(touchpad.contact && !touchpad.pressed)
-	{
+    {
+        static int tp_last_x = touchpad.x, tp_last_y = touchpad.y;
+
         if(tp_last_contact)
         {
             dx = (touchpad.x - tp_last_x) / 10;

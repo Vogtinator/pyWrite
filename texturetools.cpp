@@ -6,6 +6,14 @@
 #include "gl.h"
 #include "texturetools.h"
 
+class ScopedFclose {
+public:
+    ScopedFclose(FILE *fp) : fp(fp) {}
+    ~ScopedFclose() { fclose(fp); }
+private:
+    FILE *fp;
+};
+
 TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill, const bool transparent, const COLOR transparent_color)
 {
     TEXTURE *ret = new TEXTURE;
@@ -72,6 +80,8 @@ TEXTURE* loadTextureFromFile(const char* filename)
     if(!texture_file)
         return nullptr;
 
+    ScopedFclose fc(texture_file);
+
     char magic[3];
     magic[2] = 0;
     unsigned int width, height, pixel_max, pixels;
@@ -80,32 +90,32 @@ TEXTURE* loadTextureFromFile(const char* filename)
     TEXTURE *texture = nullptr;
 
     if(fread(magic, 1, 2, texture_file) != 2 || strcmp(magic, "P6"))
-        goto end;
+        return texture;
 
     if(!skip_space(texture_file))
-        goto end;
+        return texture;
 
     if(fscanf(texture_file, "%d", &width) != 1)
-        goto end;
+        return texture;
 
     if(!skip_space(texture_file))
-        goto end;
+        return texture;
 
     if(fscanf(texture_file, "%d", &height) != 1)
-        goto end;
+        return texture;
 
     if(!skip_space(texture_file))
-        goto end;
+        return texture;
 
     if(fscanf(texture_file, "%d", &pixel_max) != 1 || pixel_max != 255)
-        goto end;
+        return texture;
 
     if(!skip_space(texture_file))
-        goto end;
+        return texture;
 
     texture = newTexture(width, height);
     if(!texture)
-        goto end;
+        return texture;
 
     pixels = width * height;
     buffer = new RGB24[pixels];
@@ -113,7 +123,7 @@ TEXTURE* loadTextureFromFile(const char* filename)
     if(fread(buffer, sizeof(RGB24), pixels, texture_file) != pixels)
     {
         delete[] buffer;
-        goto end;
+        return texture;
     }
 
     //Convert to RGB565
@@ -127,11 +137,6 @@ TEXTURE* loadTextureFromFile(const char* filename)
     }
 
     delete[] buffer;
-
-    end:
-
-    fclose(texture_file);
-
     return texture;
 }
 
@@ -141,11 +146,10 @@ bool saveTextureToFile(const TEXTURE &texture, const char *filename)
     if(!f)
         return false;
 
+    ScopedFclose fc(f);
+
     if(fprintf(f, "P6 %d %d %d ", texture.width, texture.height, 255) < 0)
-    {
-        fclose(f);
         return false;
-    }
 
     unsigned int pixels = texture.width * texture.height;
     RGB24 *buffer24 = new RGB24[pixels];
@@ -162,15 +166,11 @@ bool saveTextureToFile(const TEXTURE &texture, const char *filename)
         ++ptr16;
     }
 
-    if(fwrite(buffer24, sizeof(RGB24), texture.width * texture.height, f) != static_cast<unsigned int>(texture.width) * texture.height)
-    {
-        delete[] buffer24;
-        fclose(f);
-        return false;
-    }
+    bool ret = fwrite(buffer24, sizeof(RGB24), texture.width * texture.height, f) == static_cast<unsigned int>(texture.width) * texture.height;
 
     delete[] buffer24;
-    return true;
+
+    return ret;
 }
 
 TextureAtlasEntry textureArea(const unsigned int x, const unsigned int y, const unsigned int w, const unsigned int h)

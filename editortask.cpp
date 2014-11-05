@@ -14,7 +14,7 @@ EditorTask editor_task;
 
 extern "C" char nio_ascii_get(int *a);
 
-constexpr char KEY_UP = 0xF0, KEY_DOWN = 0xF1, KEY_LEFT = 0xF2, KEY_RIGHT = 0xF3, KEY_LEFT_SHIFT = 0xF4, KEY_RIGHT_SHIFT = 0xF5;
+constexpr char KEY_UP = 0xF0, KEY_DOWN = 0xF1, KEY_LEFT = 0xF2, KEY_RIGHT = 0xF3;
 
 EditorTask::EditorTask()
 {
@@ -55,7 +55,7 @@ void EditorTask::makeCurrent()
             fclose(f);
 
             //Reset cursor and view
-            sel_start = sel_line = x_offset = line_top = 0;
+            cursor_pos = x_offset = line_top = 0;
         }
         else
             dialog_task.showMessage("Could not open '" + filepath.substr(browser_task.filepath.find_last_of('/') + 1, std::string::npos) + "'!");
@@ -107,9 +107,9 @@ void EditorTask::logic()
     else if(isKeyPressed(KEY_NSPIRE_DOWN))
         c = KEY_DOWN;
     else if(isKeyPressed(KEY_NSPIRE_LEFT))
-        c = isKeyPressed(KEY_NSPIRE_SHIFT) ? KEY_LEFT_SHIFT : KEY_LEFT;
+        c = KEY_LEFT;
     else if(isKeyPressed(KEY_NSPIRE_RIGHT))
-        c = isKeyPressed(KEY_NSPIRE_SHIFT) ? KEY_RIGHT_SHIFT : KEY_RIGHT;
+        c = KEY_RIGHT;
 
     if(isKeyPressed(KEY_NSPIRE_ESC) && !key_hold_down)
     {
@@ -119,7 +119,9 @@ void EditorTask::logic()
     }
     else if(c > 1)
     {
-        const char *current_sel; int x = 0, lines = (240 - 4 - fontHeight()) / fontHeight();
+        const char *current_sel;
+        int x = 0, lines = (240 - 4 - fontHeight()) / fontHeight();
+        unsigned int cursor_line, cursor_pos_new;
 
         //Key repeat handling
         if(key_hold_down)
@@ -133,82 +135,149 @@ void EditorTask::logic()
 
         switch(c)
         {
-        case KEY_LEFT_SHIFT:
-            if(x_offset >= SCREEN_WIDTH/2)
-                x_offset -= SCREEN_WIDTH/2;
-            break;
-        case KEY_RIGHT_SHIFT:
-            x_offset += SCREEN_WIDTH/2;
-            break;
-
         case KEY_UP:
-            if(sel_line == 0)
-                break;
-            //Fall through
-
         case KEY_DOWN:
-            //Find beginning of line
-            current_sel = atLine(sel_line);
+            //Get line the cursor is on
+            cursor_line = linesUntil(buffer.c_str() + cursor_pos);
 
-            //Get x position of selection
-            while(static_cast<unsigned int>(current_sel - buffer.c_str()) < sel_start)
+            //Cancel if there is nothing to move the cursor to
+            if(cursor_line == 0 && c == KEY_UP)
+                break;
+
+            //Find beginning of line
+            current_sel = atLine(cursor_line);
+
+            //Get x position of selection relative to start of line
+            while(static_cast<unsigned int>(current_sel - buffer.c_str()) < cursor_pos)
                 x += fontWidth(*current_sel++);
 
-            //Get new line and find char at X position
-            current_sel = atLine(c == KEY_UP ? sel_line - 1 : sel_line + 1);
+            //Get new line and find char at x position
+            current_sel = atLine(c == KEY_UP ? cursor_line - 1 : cursor_line + 1);
             while(*current_sel && *current_sel != '\n' && x > 0)
                 x -= fontWidth(*current_sel++);
 
-            sel_line = linesUntil(current_sel);
-            sel_start = current_sel - buffer.c_str();
+            cursor_line = linesUntil(current_sel);
+            cursor_pos_new = current_sel - buffer.c_str();
 
-            if(sel_line < line_top)
+            //Selection
+            if(isKeyPressed(KEY_NSPIRE_SHIFT))
+            {
+                if(cursor_pos == sel_end)
+                    sel_end = cursor_pos_new;
+                else if(cursor_pos == sel_start)
+                    sel_start = cursor_pos_new;
+                else if(c == KEY_UP)
+                {
+                    sel_start = cursor_pos_new;
+                    sel_end = cursor_pos;
+                }
+                else
+                {
+                    sel_end = cursor_pos_new;
+                    sel_end = cursor_pos;
+                }
+            }
+            else //Abort selection
+                sel_start = sel_end = cursor_pos_new;
+
+            cursor_pos = cursor_pos_new;
+
+            if(cursor_line < line_top)
                 --line_top;
-            else if(sel_line >= line_top + lines)
+            else if(cursor_line >= line_top + lines)
                 ++line_top;
 
             updateCursor();
             break;
 
         case KEY_RIGHT:
-            if(sel_start < buffer.length())
+            //Horizontal scrolling
+            if(isKeyPressed(KEY_NSPIRE_CTRL))
             {
-                if(*(buffer.c_str() + sel_start) == '\n')
-                    ++sel_line;
+                //Check for overflow. Or is wrapping a feature?
+                if(x_offset + SCREEN_WIDTH/2 > x_offset)
+                    x_offset += SCREEN_WIDTH/2;
+                break;
+            }
 
-                ++sel_start;
+            if(cursor_pos < buffer.length())
+            {
+                //Hold shift to move the selection
+                if(isKeyPressed(KEY_NSPIRE_SHIFT))
+                {
+                    if(cursor_pos == sel_end)
+                        ++sel_end;
+                    else if(cursor_pos == sel_start)
+                        ++sel_start;
+                    else
+                    {
+                        sel_start = cursor_pos;
+                        sel_end = cursor_pos + 1;
+                    }
+                }
+                else
+                    sel_start = sel_end;
+
+                ++cursor_pos;
                 updateCursor();
             }
             break;
         case KEY_LEFT:
-            if(sel_start > 0)
+            //Horizontal scrolling
+            if(isKeyPressed(KEY_NSPIRE_CTRL))
             {
-                --sel_start;
+                if(x_offset >= SCREEN_WIDTH/2)
+                    x_offset -= SCREEN_WIDTH/2;
+                break;
+            }
 
-                if(*(buffer.c_str() + sel_start) == '\n')
-                    --sel_line;
+            if(cursor_pos > 0)
+            {
+                //Hold shift to move the selection
+                if(isKeyPressed(KEY_NSPIRE_SHIFT))
+                {
+                    if(cursor_pos == sel_end)
+                        --sel_end;
+                    else if(cursor_pos == sel_start)
+                        --sel_start;
+                    else
+                    {
+                        sel_end = cursor_pos;
+                        sel_start = cursor_pos - 1;
+                    }
+                }
+                else
+                    sel_start = sel_end;
 
+                --cursor_pos;
                 updateCursor();
             }
             break;
 
         case '\b':
-            if(sel_start > 0)
-            {
-                buffer.erase(buffer.begin() + (sel_start - 1));
-                --sel_start;
-            }
-            break;
-
-        case '\n':
-            buffer.insert(buffer.begin() + sel_start, c);
-            ++sel_start;
-            sel_line = linesUntil(buffer.c_str() + sel_start);
-            break;
-
         default:
-            buffer.insert(buffer.begin() + sel_start, c);
-            ++sel_start;
+            //If something is selected
+            if(sel_start != sel_end)
+            {
+                buffer.erase(buffer.begin() + sel_start, buffer.begin() + sel_end);
+                cursor_pos = sel_end = sel_start;
+            }
+            else if(c == '\b')
+            {
+                if(cursor_pos > 0)
+                {
+                    buffer.erase(buffer.begin() + (cursor_pos - 1));
+                    --cursor_pos;
+                }
+            }
+
+            if(c != '\b')
+            {
+                buffer.insert(buffer.begin() + cursor_pos, c);
+                ++cursor_pos;
+            }
+
+            updateCursor();
             break;
         }
 
@@ -264,21 +333,20 @@ void EditorTask::render()
     }
 
     const char *ptr = atLine(line_top);
-    int x = 4 - x_offset; unsigned int y = menu_height + 4;
+    int x = 4 - x_offset; unsigned int y = menu_height + 4, pos = ptr - buffer.c_str();
     const int start_x = x;
     const unsigned int font_height = fontHeight();
     while(y + font_height < SCREEN_HEIGHT)
     {
         //Draw '|' as cursor
-        if((unsigned int)(ptr - buffer.c_str()) == sel_start && cursor_tick > cursor_time && x >= 3)
+        if(pos == cursor_pos && cursor_tick > cursor_time && x >= 3)
             drawChar('|', 0x0000, *screen, x - 3, y);
 
         //If mouse clicked and on current char set selection
         if(cursor_task.state && cursor_task.y >= y && cursor_task.y < y + font_height
                 && static_cast<int>(cursor_task.x) >= x && static_cast<int>(cursor_task.x) < static_cast<int>(x + fontWidth(*ptr)))
         {
-            sel_start = ptr - buffer.c_str();
-            sel_line = linesUntil(ptr);
+            cursor_pos = ptr - buffer.c_str();
 
             //Show cursor
             cursor_tick = cursor_time;
@@ -293,11 +361,18 @@ void EditorTask::render()
             y += font_height;
         }
         else if(*ptr && x + fontWidth(*ptr) < SCREEN_WIDTH && x >= 0)
-            x += drawChar(*ptr, 0x0000, *screen, x, y);
+        {
+            //Check whether in selection
+            if(pos >= sel_start && pos < sel_end)
+                x += drawChar(*ptr, 0xFFFF, 0x003F, *screen, x, y); //White chars on blue background
+            else
+                x += drawChar(*ptr, 0x0000, *screen, x, y);
+        }
         else if(*ptr)
             x += fontWidth(*ptr);
 
         ++ptr;
+        ++pos;
     }
 }
 
@@ -307,7 +382,7 @@ void EditorTask::menuNew()
     buffer = "";
 
     //Reset cursor and view
-    sel_start = sel_line = x_offset = line_top = 0;
+    cursor_pos = x_offset = line_top = 0;
 }
 
 void EditorTask::menuOpen()
@@ -382,8 +457,8 @@ unsigned int EditorTask::linesUntil(const char *end)
 void EditorTask::updateCursor()
 {
     int cursor_x = 0;
-    const char *ptr = atLine(sel_line);
-    while(ptr < buffer.c_str() + sel_start)
+    const char *ptr = atLine(linesUntil(buffer.c_str() + cursor_pos));
+    while(ptr < buffer.c_str() + cursor_pos)
         cursor_x += fontWidth(*ptr++);
 
     cursor_x -= x_offset;
@@ -399,6 +474,9 @@ void EditorTask::updateCursor()
         cursor_x += SCREEN_WIDTH/2;
         x_offset -= SCREEN_WIDTH/2;
     }
+
+    if(sel_start > sel_end)
+        std::swap(sel_start, sel_end);
 
     //Show cursor
     cursor_tick = cursor_time;

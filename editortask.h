@@ -16,6 +16,8 @@ public:
     virtual void render() override;
 
 private:
+
+    //Menu
     struct MenuItem {
         const char *name;
         void (EditorTask:: *action)();
@@ -39,16 +41,19 @@ private:
 
     static const unsigned int menu_width = 260, menu_height = 20, menu_x = (SCREEN_WIDTH - menu_width) / 2;
 
+    //Utility functions
     const char *atLine(unsigned int l);
     unsigned int linesUntil(const char *end);
     void updateCursor();
 
-    std::string filepath;
-    std::string buffer = "Hi!\nThis is pyWrite 0.1 by Vogtinator!";
+    std::string filepath, buffer = "Hi!\nThis is pyWrite 0.2 by Vogtinator!";
 
-    // Start of selection (buffer offset) and x offset (horizontal scrolling)
-    unsigned int sel_start = 0, sel_line = 0, x_offset = 0;
-    unsigned int line_top = 0;
+    //Cursor and selection. cursor_pos is the offset into the buffer, sel_start and sel_end define the selection
+    unsigned int cursor_pos = 0, sel_start = 0, sel_end = 5;
+
+    //Scrolling. line_top is number of the first visible line (vertical scrolling)
+    //and x_offset
+    unsigned int line_top = 0, x_offset = 0;
 
     unsigned int cursor_tick = 0, key_repeat = 0;
     static const unsigned int cursor_time = 30, key_repeat_count = 20, key_repeat_speed = 10;
