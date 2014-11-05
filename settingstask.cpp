@@ -45,7 +45,8 @@ SettingsTask::SettingsTask()
             if(fread(buf, entry.size, 1, settings_file) != 1)
                 goto skip_entry;
 
-            mpython_path.setContent(buf);
+            if(buf[entry.size - 1] == 0)
+                mpython_path.setContent(buf);
 
             free(reinterpret_cast<void*>(buf));
             break;
@@ -95,8 +96,17 @@ void SettingsTask::event(Widget *source, Widget::Event event)
 {
     if(source == &save_button && event == Widget::Event::Button_Press)
     {
-        //TODO: Save
+        FILE *settings_file = fopen("/documents/ndless/pywrite.cnf.tns", "wb");
+
+        SettingsEntry entry;
+        entry.type = SettingsType::PATH_MPYTHON;
+        entry.size = mpython_path.content().length() + 1;
+
+        fwrite(&entry, sizeof(entry), 1, settings_file);
+        fwrite(mpython_path.content().c_str(), entry.size, 1, settings_file);
 
         old_task->makeCurrent();
+
+        fclose(settings_file);
     }
 }
