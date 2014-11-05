@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "syntaxhighlighter.h"
 #include "task.h"
 
 class EditorTask : public Task
@@ -54,6 +55,9 @@ private:
     //Scrolling. line_top is number of the first visible line (vertical scrolling)
     //and x_offset
     unsigned int line_top = 0, x_offset = 0;
+
+    //Syntax highlighting
+    SyntaxHighlighter *highlighter = nullptr;
 
     unsigned int cursor_tick = 0, key_repeat = 0;
     static const unsigned int cursor_time = 30, key_repeat_count = 20, key_repeat_speed = 10;

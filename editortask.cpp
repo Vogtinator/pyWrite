@@ -28,6 +28,9 @@ EditorTask::EditorTask()
     float padding = menu_width / menuitem_width;
     for(auto &item : menu_items)
         item.width = padding * item.width;
+
+    //TODO: Change dynamically
+    highlighter = &python_highlighter;
 }
 
 void EditorTask::makeCurrent()
@@ -120,7 +123,7 @@ void EditorTask::logic()
     else if(c > 1)
     {
         const char *current_sel;
-        int x = 0, lines = (240 - 4 - fontHeight()) / fontHeight();
+        int x = 0;
         unsigned int cursor_line, cursor_pos_new;
 
         //Key repeat handling
@@ -181,11 +184,6 @@ void EditorTask::logic()
                 sel_start = sel_end = cursor_pos_new;
 
             cursor_pos = cursor_pos_new;
-
-            if(cursor_line < line_top)
-                --line_top;
-            else if(cursor_line >= line_top + lines)
-                ++line_top;
 
             updateCursor();
             break;
@@ -333,9 +331,12 @@ void EditorTask::render()
     }
 
     const char *ptr = atLine(line_top);
-    int x = 4 - x_offset; unsigned int y = menu_height + 4, pos = ptr - buffer.c_str();
+    int x = 4 - x_offset;
+    unsigned int y = menu_height + 2, pos = ptr - buffer.c_str(), highlight_length = 0;
     const int start_x = x;
     const unsigned int font_height = fontHeight();
+    COLOR font_color = 0x0000;
+
     while(y + font_height < SCREEN_HEIGHT)
     {
         //Draw '|' as cursor
@@ -355,6 +356,15 @@ void EditorTask::render()
         if(!*ptr)
             break;
 
+        if(highlighter)
+        {
+            if(highlight_length == 0 && !isspace(*ptr))
+                font_color = highlighter->highlight(ptr, highlight_length);
+
+            if(!isspace(*ptr))
+                --highlight_length;
+        }
+
         if(*ptr == '\n')
         {
             x = start_x;
@@ -366,7 +376,7 @@ void EditorTask::render()
             if(pos >= sel_start && pos < sel_end)
                 x += drawChar(*ptr, 0xFFFF, 0x003F, *screen, x, y); //White chars on blue background
             else
-                x += drawChar(*ptr, 0x0000, *screen, x, y);
+                x += drawChar(*ptr, font_color, *screen, x, y);
         }
         else if(*ptr)
             x += fontWidth(*ptr);
@@ -425,6 +435,7 @@ void EditorTask::menuRun()
 
     const char* argv[] = {filepath.c_str()};
     key_hold_down = true;
+    //TODO: Let user change the path
     nl_exec("/documents/ndless/micropython.tns", sizeof(argv), const_cast<char**>(argv));
 }
 
@@ -453,11 +464,12 @@ unsigned int EditorTask::linesUntil(const char *end)
     return ret;
 }
 
-//Update horiztontal scroll offset according to cursor position
+//Update horizontal and vertical scroll position according to cursor position
 void EditorTask::updateCursor()
 {
     int cursor_x = 0;
-    const char *ptr = atLine(linesUntil(buffer.c_str() + cursor_pos));
+    unsigned int cursor_line = linesUntil(buffer.c_str() + cursor_pos);
+    const char *ptr = atLine(cursor_line);
     while(ptr < buffer.c_str() + cursor_pos)
         cursor_x += fontWidth(*ptr++);
 
@@ -474,6 +486,11 @@ void EditorTask::updateCursor()
         cursor_x += SCREEN_WIDTH/2;
         x_offset -= SCREEN_WIDTH/2;
     }
+
+    if(cursor_line < line_top)
+        --line_top;
+    else if(cursor_line >= line_top + (240 - 4 - fontHeight()) / fontHeight())
+        ++line_top;
 
     if(sel_start > sel_end)
         std::swap(sel_start, sel_end);
