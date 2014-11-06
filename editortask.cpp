@@ -171,22 +171,7 @@ void EditorTask::logic()
 
             //Selection
             if(isKeyPressed(KEY_NSPIRE_SHIFT))
-            {
-                if(cursor_pos == sel_end)
-                    sel_end = cursor_pos_new;
-                else if(cursor_pos == sel_start)
-                    sel_start = cursor_pos_new;
-                else if(c == KEY_UP)
-                {
-                    sel_start = cursor_pos_new;
-                    sel_end = cursor_pos;
-                }
-                else
-                {
-                    sel_end = cursor_pos_new;
-                    sel_end = cursor_pos;
-                }
-            }
+                changeSelection(cursor_pos_new);
             else //Abort selection
                 sel_start = sel_end = cursor_pos_new;
 
@@ -209,17 +194,7 @@ void EditorTask::logic()
             {
                 //Hold shift to move the selection
                 if(isKeyPressed(KEY_NSPIRE_SHIFT))
-                {
-                    if(cursor_pos == sel_end)
-                        ++sel_end;
-                    else if(cursor_pos == sel_start)
-                        ++sel_start;
-                    else
-                    {
-                        sel_start = cursor_pos;
-                        sel_end = cursor_pos + 1;
-                    }
-                }
+                    changeSelection(cursor_pos + 1);
                 else
                     sel_start = sel_end;
 
@@ -240,17 +215,7 @@ void EditorTask::logic()
             {
                 //Hold shift to move the selection
                 if(isKeyPressed(KEY_NSPIRE_SHIFT))
-                {
-                    if(cursor_pos == sel_end)
-                        --sel_end;
-                    else if(cursor_pos == sel_start)
-                        --sel_start;
-                    else
-                    {
-                        sel_end = cursor_pos;
-                        sel_start = cursor_pos - 1;
-                    }
-                }
+                    changeSelection(cursor_pos - 1);
                 else
                     sel_start = sel_end;
 
@@ -350,14 +315,23 @@ void EditorTask::render()
         if(pos == cursor_pos && cursor_tick > cursor_time && x >= 3)
             drawChar('|', 0x0000, *screen, x - 3, y);
 
-        //If mouse clicked and on current char set selection
+        //If mouse clicked and on current char change cursor position
         if(cursor_task.state && cursor_task.y >= y && cursor_task.y < y + font_height
                 && static_cast<int>(cursor_task.x) >= x && static_cast<int>(cursor_task.x) < static_cast<int>(x + fontWidth(*ptr)))
         {
-            cursor_pos = ptr - buffer.c_str();
+            unsigned int cursor_pos_new = ptr - buffer.c_str();
 
             //Show cursor
             cursor_tick = cursor_time;
+
+            if(isKeyPressed(KEY_NSPIRE_SHIFT))
+                changeSelection(cursor_pos_new);
+            else
+                sel_start = sel_end = cursor_pos_new;
+
+            cursor_pos = cursor_pos_new;
+
+            updateCursor();
         }
 
         if(!*ptr)
@@ -504,4 +478,22 @@ void EditorTask::updateCursor()
 
     //Show cursor
     cursor_tick = cursor_time;
+}
+
+void EditorTask::changeSelection(unsigned int cursor_pos_new)
+{
+    if(cursor_pos == sel_end)
+        sel_end = cursor_pos_new;
+    else if(cursor_pos == sel_start)
+        sel_start = cursor_pos_new;
+    else if(cursor_pos_new <= cursor_pos)
+    {
+        sel_start = cursor_pos_new;
+        sel_end = cursor_pos;
+    }
+    else
+    {
+        sel_end = cursor_pos_new;
+        sel_start = cursor_pos;
+    }
 }
