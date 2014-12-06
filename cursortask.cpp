@@ -19,7 +19,7 @@ void CursorTask::logic()
 
     state = touchpad_arrow_pressed(TPAD_ARROW_CLICK);
 
-	int dx = 0, dy = 0;
+    int dx = 0, dy = 0;
     static bool tp_last_contact = touchpad.contact;
     if(touchpad.contact && !touchpad.pressed)
     {

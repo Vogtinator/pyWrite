@@ -48,7 +48,8 @@ private:
     void updateCursor();
     void changeSelection(unsigned int cursor_pos_new);
 
-    std::string filepath, buffer = "Hi!\nThis is pyWrite 0.2 by Vogtinator!\nPress Ctrl+S to open the settings dialog!";
+    std::string filepath, buffer = "Hi!\nThis is pyWrite 0.3 by Vogtinator!\nPress Ctrl+S to open the settings dialog!",
+                cutbuffer = "";
 
     //Cursor and selection. cursor_pos is the offset into the buffer, sel_start and sel_end define the selection
     unsigned int cursor_pos = 0, sel_start = 0, sel_end = 0;

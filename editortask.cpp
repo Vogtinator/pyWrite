@@ -122,10 +122,44 @@ void EditorTask::logic()
 
         key_hold_down = true;
     }
-    else if(isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_S)) //Settings
+    else if(isKeyPressed(KEY_NSPIRE_CTRL))
     {
-        settings_task.makeCurrent();
-        return;
+        if(key_hold_down)
+            key_hold_down = isKeyPressed(KEY_NSPIRE_S) || isKeyPressed(KEY_NSPIRE_C) || isKeyPressed(KEY_NSPIRE_V) || isKeyPressed(KEY_NSPIRE_X);
+
+        else if(isKeyPressed(KEY_NSPIRE_S)) //Settings
+        {
+            key_hold_down = true;
+            settings_task.makeCurrent();
+            return;
+        }
+        else if(isKeyPressed(KEY_NSPIRE_C) || isKeyPressed(KEY_NSPIRE_X)) //Copy or Cut
+        {
+            key_hold_down = true;
+            if(sel_start != sel_end)
+            {
+                cutbuffer.resize(sel_end - sel_start);
+                std::copy(buffer.begin() + sel_start, buffer.begin() + sel_end, cutbuffer.begin());
+
+                if(isKeyPressed(KEY_NSPIRE_X))
+                {
+                    buffer.erase(buffer.begin() + sel_start, buffer.begin() + sel_end);
+                    cursor_pos = sel_end = sel_start;
+                }
+            }
+        }
+        else if(isKeyPressed(KEY_NSPIRE_V)) //Insert
+        {
+            key_hold_down = true;
+            if(sel_start != sel_end)
+            {
+                buffer.erase(buffer.begin() + sel_start, buffer.begin() + sel_end);
+                cursor_pos = sel_start;
+            }
+
+            buffer.insert(cursor_pos, cutbuffer);
+            cursor_pos = sel_end = sel_start = cursor_pos + cutbuffer.length();
+        }
     }
     else if(c > 1)
     {
