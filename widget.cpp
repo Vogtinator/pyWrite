@@ -109,6 +109,24 @@ void TextlineWidget::logic()
     if(!has_focus && cursor_task.state && cursorOn(x, y, width, height))
         focus();
 
+    if(cursor_task.state && cursorOn(x, y, width, height))
+    {
+        int x_rel = cursor_task.x - x - 1;
+        const char *str = text.c_str() + scroll;
+        unsigned int pos = scroll;
+
+        EFont old_font = getFont();
+        setFont(EFont::Normal);
+        while(x_rel > 0 && *str)
+        {
+            x_rel -= fontWidth(*str++);
+            ++pos;
+        }
+        setFont(old_font);
+
+        cursor_pos = pos;
+    }
+
     if(!has_focus)
         return;
 
@@ -124,12 +142,16 @@ void TextlineWidget::logic()
         if(cursor_pos > 0)
             --cursor_pos;
 
+        updateScroll();
+
         key_hold_down = true;
     }
     else if(isKeyPressed(KEY_NSPIRE_RIGHT))
     {
         if(cursor_pos < text.length())
             ++cursor_pos;
+
+        updateScroll();
 
         key_hold_down = true;
     }
@@ -143,12 +165,16 @@ void TextlineWidget::logic()
             {
                 text.erase(text.begin() + (cursor_pos - 1));
                 --cursor_pos;
+
+                updateScroll();
             }
         }
         else
         {
             text.insert(text.begin() + cursor_pos, c);
             ++cursor_pos;
+
+            updateScroll();
         }
     }
 
@@ -162,7 +188,7 @@ void TextlineWidget::render()
 {
     drawRectangle(*screen, x, y, width, height, 0x0000);
 
-    const char *str = text.c_str(), *cursor = str + cursor_pos;
+    const char *str = text.c_str() + scroll, *cursor = text.c_str() + cursor_pos;
     unsigned int x1 = x + 1;
 
     EFont old_font = getFont();
@@ -171,7 +197,7 @@ void TextlineWidget::render()
     while(*str && x1 - x + fontWidth(*str) < width)
     {
         if(has_focus && str == cursor)
-            drawChar('|', 0x0000, *screen, x1 - 3, y + height/2 - fontHeight()/2);
+            drawChar('|', 0x0000, *screen, x1 - 2, y + height/2 - fontHeight()/2);
 
         x1 += drawChar(*str, 0x0000, *screen, x1, y + height/2 - fontHeight()/2);
 
@@ -179,7 +205,28 @@ void TextlineWidget::render()
     }
 
     if(str == cursor)
-        drawChar('|', 0x0000, *screen, x1 - 3, y + height/2 - fontHeight()/2);
+        drawChar('|', 0x0000, *screen, x1 - 2, y + height/2 - fontHeight()/2);
 
     setFont(old_font);
+}
+
+void TextlineWidget::updateScroll()
+{
+    if(scroll != 0 && cursor_pos <= scroll)
+        --scroll;
+
+    if(cursor_pos <= scroll)
+        return;
+
+    const char *str = text.c_str() + scroll;
+    unsigned int cur_x = 0, len = cursor_pos - scroll;
+    EFont old_font = getFont();
+    setFont(EFont::Normal);
+    while(len--)
+        cur_x += fontWidth(*str++);
+
+    setFont(old_font);
+
+    if(cur_x >= width - 5)
+        ++scroll;
 }

@@ -70,13 +70,15 @@ public:
         : Widget(parent), x(x), y(y), width(width), height(13) {}
 
     virtual std::string content() { return text; }
-    virtual void setContent(std::string str) { text = str; cursor_pos = 0; }
+    virtual void setContent(std::string str) { text = str; cursor_pos = 0; scroll = 0; }
     virtual void logic() override;
     virtual void render() override;
 
 private:
+    void updateScroll();
+
     std::string text = "Hi!";
-    unsigned int x, y, width, height, cursor_pos = 0;
+    unsigned int x, y, width, height, cursor_pos = 0, scroll = 0;
 };
 
 class DialogWidget : public ContainerWidget
