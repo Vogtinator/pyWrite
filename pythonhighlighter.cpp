@@ -42,7 +42,7 @@ COLOR PythonSyntaxHighlighter::highlight(const char *token, unsigned int &length
 {
     //Tokenize the input
     const char *tok_end = strchrnul(token, ' ');
-    std::initializer_list<char> separator = {'\t', '\n', '(', ')', ':'};
+    std::initializer_list<char> separator = {'\t', '\n', '(', ')', ':', ','};
     for(char s : separator)
     {
         const char *tok_end2 = strchrnul(token, s);
