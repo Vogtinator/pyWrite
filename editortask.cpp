@@ -449,16 +449,19 @@ void EditorTask::menuRun()
 		{
 			fwrite(buffer.c_str(), buffer.length(), 1, f);
 			fclose(f);
-			
+		}
+		
+		if (!ferror(f))
+		{
 			runFile("/documents/tmp.py");
 			remove("/documents/tmp.py");
-		} else {
-			dialog_task.showMessage("Could not save 'tmp.py'!");
 		}
+		else
+			dialog_task.showMessage("Could not save 'tmp.py'!");
 
-    } else {
+    }
+	else
 		runFile(filepath.c_str());
-	}
 }
 
 void EditorTask::menuExit()
