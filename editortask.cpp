@@ -444,20 +444,20 @@ void EditorTask::menuRun()
 {
     if(filepath == "")
     {
-		FILE *f = fopen("/documents/tmp.py", "wb");
-		if(f && fwrite(buffer.c_str(), buffer.length(), 1, f))
-			runFile("/documents/tmp.py");
-		else
-			dialog_task.showMessage("Could not save 'tmp.py'!");
+        FILE *f = fopen("/documents/tmp.py", "wb");
+        if(f && fwrite(buffer.c_str(), buffer.length(), 1, f))
+            runFile("/documents/tmp.py");
+        else
+            dialog_task.showMessage("Could not save 'tmp.py'!");
 
-		if(f)
-		{
-			fclose(f);
-			remove("/documents/tmp.py");
-		}
+        if(f)
+        {
+            fclose(f);
+            remove("/documents/tmp.py");
+        }
     }
-	else
-		runFile(filepath.c_str());
+    else
+        runFile(filepath.c_str());
 }
 
 void EditorTask::menuExit()
@@ -540,8 +540,8 @@ void EditorTask::changeSelection(unsigned int cursor_pos_new)
 
 void EditorTask::runFile(const char *file)
 {
-	const char* argv[] = {file};
-	key_hold_down = true;
+    const char* argv[] = {file};
+    key_hold_down = true;
 
-	nl_exec(settings_task.mpython_path.content().c_str(), sizeof(argv), const_cast<char**>(argv));
+    nl_exec(settings_task.mpython_path.content().c_str(), sizeof(argv), const_cast<char**>(argv));
 }
