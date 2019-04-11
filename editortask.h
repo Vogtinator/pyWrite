@@ -47,6 +47,7 @@ private:
     unsigned int linesUntil(const char *end);
     void updateCursor();
     void changeSelection(unsigned int cursor_pos_new);
+    void runFile(const char *file);
 
     std::string filepath, buffer = "Hi!\nThis is pyWrite 0.3 by Vogtinator!\nPress Ctrl+S to open the settings dialog!",
                 cutbuffer = "";
