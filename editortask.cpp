@@ -445,20 +445,16 @@ void EditorTask::menuRun()
     if(filepath == "")
     {
 		FILE *f = fopen("/documents/tmp.py", "wb");
-		if(f)
-		{
-			fwrite(buffer.c_str(), buffer.length(), 1, f);
-			fclose(f);
-		}
-		
-		if (!ferror(f))
-		{
+		if(f && fwrite(buffer.c_str(), buffer.length(), 1, f))
 			runFile("/documents/tmp.py");
-			remove("/documents/tmp.py");
-		}
 		else
 			dialog_task.showMessage("Could not save 'tmp.py'!");
 
+		if(f)
+		{
+			fclose(f);
+			remove("/documents/tmp.py");
+		}
     }
 	else
 		runFile(filepath.c_str());
